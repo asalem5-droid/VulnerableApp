@@ -22,14 +22,18 @@ INSERT INTO auth_users VALUES (6, 'admin_sha256', '8b8eca84f7e2b04f531749f999c3b
 -- Level 7: Salted SHA-256 (q1W%6nTp^8vM with Salt s9A#2zLk)
 INSERT INTO auth_users VALUES (7, 'admin_enum', '71ad23cc508b5658f0bc21d8323f55521be98ca951e83a4a4d15641a3ca2b8a4', 's9A#2zLk', 'SHA256', 7, 'admin_enum@example.com', 'ADMIN');
 
--- Level 8: Weak Password + Bcrypt (password123)
--- Bcrypt hash for 'password123'
-INSERT INTO auth_users VALUES (8, 'admin_weak', '$2a$10$gV2vZ5fxhZlwOP.GIqOI1.z7q5jws8VDmgIcKqY/uzvhzSUDio2sW', NULL, 'BCRYPT', 8, 'admin_weak@example.com', 'ADMIN');
+-- Level 8: Bcrypt over a high entropy password (J4v#7qLm!2xTz9Rb)
+-- The account used to hold 'password123', a top-10 rockyou entry: BCrypt slows a guess down but
+-- cannot save a secret that a short dictionary contains, so the credential itself was the flaw.
+-- Bcrypt hash (cost 12) for 'J4v#7qLm!2xTz9Rb'
+INSERT INTO auth_users VALUES (8, 'admin_weak', '$2a$12$x1HJw5KmcLkCafAPrC.ul.VSZyiJqn64j80wxCWcAg4wDCzoqWLLu', NULL, 'BCRYPT', 8, 'admin_weak@example.com', 'ADMIN');
 
 -- Level 9: Secure (Bcrypt + Generic Error) (9fG#2hJk*LmN!8qR)
 -- Bcrypt hash for '9fG#2hJk*LmN!8qR'
 INSERT INTO auth_users VALUES (9, 'admin_secure', '$2a$10$1WiFUNqUY/vHTzR2QtuMQuzCLK3aZEdjEUpqS4msXOevaCz7Wobe.', NULL, 'BCRYPT', 9, 'admin_secure@example.com', 'ADMIN');
 
--- Level 10: Low-iteration BCrypt (cost factor 4)
--- Bcrypt hash (cost 4) for the common password 'sunshine'
-INSERT INTO auth_users VALUES (10, 'admin_lowcost', '$2a$04$rK/CT/Bz7GjjGLnB3WWjTOpMpNcGJzmoh.bdc7gQJ4DBQnKj9xnHC', NULL, 'BCRYPT_LOW_ITERATION', 10, 'admin_lowcost@example.com', 'ADMIN');
+-- Level 10: BCrypt at an adaptive work factor (sunshine)
+-- The stored hash used to carry a cost factor of 4, roughly a thousand times cheaper to attack
+-- than the current default, so a database dump could be cracked offline with hashcat -m 3200.
+-- Bcrypt hash (cost 12) for 'sunshine'
+INSERT INTO auth_users VALUES (10, 'admin_lowcost', '$2a$12$kRxjbITCD7KpdrsfhLnd3uPG9xJB3I3EA/yAnGABTE2q3JMKNIUmW', NULL, 'BCRYPT', 10, 'admin_lowcost@example.com', 'ADMIN');
