@@ -204,6 +204,28 @@ public class VulnerableAppConfiguration {
     public MultipartFilter multipartFilter() {
         class MaxUploadSizeOverrideMultipartFilter extends MultipartFilter {
             @Override
+            protected void doFilterInternal(
+                    HttpServletRequest request,
+                    javax.servlet.http.HttpServletResponse response,
+                    javax.servlet.FilterChain filterChain)
+                    throws javax.servlet.ServletException, IOException {
+                try {
+                    super.doFilterInternal(request, response, filterChain);
+                } catch (org.springframework.web.multipart.MultipartException e) {
+                    // The size bound is enforced here rather than in the handler, so an oversized
+                    // request is refused before the handler ever runs and the exception would
+                    // otherwise escape the filter chain as a server error. The refusal is reported
+                    // with the same body the handler uses for input it will not store, so a client
+                    // sees a rejected upload rather than a broken endpoint.
+                    response.setStatus(javax.servlet.http.HttpServletResponse.SC_OK);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write("{\"content\":\"Input is invalid\",\"isValid\":false}");
+                    response.getWriter().flush();
+                }
+            }
+
+            @Override
             protected MultipartResolver lookupMultipartResolver(HttpServletRequest request) {
                 if (MAX_FILE_UPLOAD_SIZE_OVERRIDE_PATHS.contains(request.getServletPath())) {
                     CommonsMultipartResolver multipart = new CommonsMultipartResolver();
