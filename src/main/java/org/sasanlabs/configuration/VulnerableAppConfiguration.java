@@ -241,4 +241,37 @@ public class VulnerableAppConfiguration {
         ;
         return new MaxUploadSizeOverrideMultipartFilter();
     }
+
+    /**
+     * Sends framing protection on every response, not only on the JSON answers of the clickjacking
+     * levels.
+     *
+     * <p>A clickjacking attack frames whatever the victim actually sees, and the pages of a level
+     * are served straight out of {@code static/} by the resource handler, which no controller ever
+     * touches. Setting the headers in the controller alone therefore protected the API answer while
+     * leaving the page that renders it embeddable. {@code X-Frame-Options: DENY} is the legacy
+     * control and {@code frame-ancestors 'none'} its modern replacement, so both are sent and old
+     * and current browsers alike refuse to render any of it inside a frame. DENY rather than
+     * SAMEORIGIN, because a same-origin attacker page is enough to mount the overlay attack.
+     */
+    @Bean
+    @Order(1)
+    public javax.servlet.Filter framingProtectionFilter() {
+        return new org.springframework.web.filter.OncePerRequestFilter() {
+            @Override
+            protected void doFilterInternal(
+                    HttpServletRequest request,
+                    javax.servlet.http.HttpServletResponse response,
+                    javax.servlet.FilterChain filterChain)
+                    throws javax.servlet.ServletException, IOException {
+                if (!response.containsHeader("X-Frame-Options")) {
+                    response.setHeader("X-Frame-Options", "DENY");
+                }
+                if (!response.containsHeader("Content-Security-Policy")) {
+                    response.setHeader("Content-Security-Policy", "frame-ancestors 'none'");
+                }
+                filterChain.doFilter(request, response);
+            }
+        };
+    }
 }
