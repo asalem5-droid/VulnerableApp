@@ -32,7 +32,7 @@ INSERT INTO auth_users VALUES (5, 'admin_sha1', '$2a$12$D.IwGfcq.6eTGCGtuazW/uoQ
 INSERT INTO auth_users VALUES (6, 'admin_sha256', '$2a$12$TNQpyST0t8ZVKeqVVA075OCHhMgx0B4.zCBt1EKvC80RDg8Uyr3cW', NULL, 'BCRYPT', 6, 'admin_sha256@example.com', 'ADMIN');
 
 -- Level 7: Salted SHA-256 (q1W%6nTp^8vM with Salt s9A#2zLk)
-INSERT INTO auth_users VALUES (7, 'admin_enum', '71ad23cc508b5658f0bc21d8323f55521be98ca951e83a4a4d15641a3ca2b8a4', 's9A#2zLk', 'SHA256', 7, 'admin_enum@example.com', 'ADMIN');
+INSERT INTO auth_users VALUES (7, 'admin_enum', '6eee688ff037e0ca328a059260596242f5a45fbb70bd5430bd63bf71b51ba8ad', 's9A#2zLk', 'SHA256', 7, 'admin_enum@example.com', 'ADMIN');
 
 -- Level 8: Bcrypt over a high entropy password (J4v#7qLm!2xTz9Rb)
 -- The account used to hold 'password123', a top-10 rockyou entry: BCrypt slows a guess down but
