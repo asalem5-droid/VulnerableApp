@@ -50,9 +50,6 @@ public class VulnerableAppConfiguration {
             Arrays.asList(
                     "/" + UnrestrictedFileUpload.CONTROLLER_PATH + "/" + LevelConstants.LEVEL_9);
 
-    /** Paths whose handler sets the framing headers itself, so the filter must not repeat them. */
-    private static final String CLICKJACKING_CONTROLLER_PATH = "/ClickjackingVulnerability";
-
     /** Upper bound on a multipart request accepted on the overridden paths: 1 MiB. */
     private static final long MAX_FILE_UPLOAD_SIZE_IN_BYTES = 1_048_576L;
 
@@ -267,22 +264,19 @@ public class VulnerableAppConfiguration {
                     javax.servlet.http.HttpServletResponse response,
                     javax.servlet.FilterChain filterChain)
                     throws javax.servlet.ServletException, IOException {
-                // A handler writes its own headers after this filter has run, and they are
-                // appended rather than replaced, so setting a header here that the handler also
-                // sets would emit it twice. Browsers ignore X-Frame-Options entirely when it
-                // appears more than once, which would turn the protection off on exactly the
-                // levels that set it deliberately. Those paths are therefore left to the handler.
-                if (!isHandledByAControllerWhichSetsItsOwnFramingHeaders(request)) {
-                    response.setHeader("X-Frame-Options", "DENY");
-                    response.setHeader("Content-Security-Policy", "frame-ancestors 'none'");
-                }
+                // Set on every response without exception. This used to skip the clickjacking
+                // paths and leave them to their handler, to avoid emitting the header twice: a
+                // handler writes its headers after this filter and they are appended rather than
+                // replaced, and a browser ignores X-Frame-Options entirely when it appears more
+                // than once. But a handler only writes headers on a response it produced, so
+                // every response those URLs give that never reached the handler carried no
+                // framing protection at all: a request with the wrong method, an OPTIONS probe,
+                // anything ending in an error page. An attacker frames a URL, not a handler, so
+                // the header has to be on the response. Setting it here, before the chain runs,
+                // covers all of them, and no handler adds it any more so it is still sent once.
+                response.setHeader("X-Frame-Options", "DENY");
+                response.setHeader("Content-Security-Policy", "frame-ancestors 'none'");
                 filterChain.doFilter(request, response);
-            }
-
-            private boolean isHandledByAControllerWhichSetsItsOwnFramingHeaders(
-                    HttpServletRequest request) {
-                String path = request.getServletPath();
-                return path != null && path.startsWith(CLICKJACKING_CONTROLLER_PATH);
             }
         };
     }
