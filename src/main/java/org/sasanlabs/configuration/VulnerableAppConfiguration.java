@@ -50,6 +50,9 @@ public class VulnerableAppConfiguration {
             Arrays.asList(
                     "/" + UnrestrictedFileUpload.CONTROLLER_PATH + "/" + LevelConstants.LEVEL_9);
 
+    /** Paths whose handler sets the framing headers itself, so the filter must not repeat them. */
+    private static final String CLICKJACKING_CONTROLLER_PATH = "/ClickjackingVulnerability";
+
     /** Upper bound on a multipart request accepted on the overridden paths: 1 MiB. */
     private static final long MAX_FILE_UPLOAD_SIZE_IN_BYTES = 1_048_576L;
 
@@ -264,13 +267,22 @@ public class VulnerableAppConfiguration {
                     javax.servlet.http.HttpServletResponse response,
                     javax.servlet.FilterChain filterChain)
                     throws javax.servlet.ServletException, IOException {
-                if (!response.containsHeader("X-Frame-Options")) {
+                // A handler writes its own headers after this filter has run, and they are
+                // appended rather than replaced, so setting a header here that the handler also
+                // sets would emit it twice. Browsers ignore X-Frame-Options entirely when it
+                // appears more than once, which would turn the protection off on exactly the
+                // levels that set it deliberately. Those paths are therefore left to the handler.
+                if (!isHandledByAControllerWhichSetsItsOwnFramingHeaders(request)) {
                     response.setHeader("X-Frame-Options", "DENY");
-                }
-                if (!response.containsHeader("Content-Security-Policy")) {
                     response.setHeader("Content-Security-Policy", "frame-ancestors 'none'");
                 }
                 filterChain.doFilter(request, response);
+            }
+
+            private boolean isHandledByAControllerWhichSetsItsOwnFramingHeaders(
+                    HttpServletRequest request) {
+                String path = request.getServletPath();
+                return path != null && path.startsWith(CLICKJACKING_CONTROLLER_PATH);
             }
         };
     }
