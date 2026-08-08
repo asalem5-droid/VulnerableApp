@@ -50,6 +50,9 @@ public class VulnerableAppConfiguration {
             Arrays.asList(
                     "/" + UnrestrictedFileUpload.CONTROLLER_PATH + "/" + LevelConstants.LEVEL_9);
 
+    /** Upper bound on a multipart request accepted on the overridden paths: 1 MiB. */
+    private static final long MAX_FILE_UPLOAD_SIZE_IN_BYTES = 1_048_576L;
+
     /**
      * Will Inject MessageBundle into messageSource bean.
      *
@@ -186,9 +189,15 @@ public class VulnerableAppConfiguration {
     }
 
     /**
-     * Customized MultipartFilter bean disables default max upload size for multipart files and
-     * their overall requests, for select paths. See {@link
-     * UnrestrictedFileUpload#getVulnerablePayloadLevel10()} for usage.
+     * Customized MultipartFilter bean that bounds the accepted multipart size for the paths listed
+     * in {@link #MAX_FILE_UPLOAD_SIZE_OVERRIDE_PATHS}.
+     *
+     * <p>These paths used to be resolved with {@code setMaxUploadSize(-1)}, which removed the limit
+     * entirely. That is an uncontrolled resource consumption flaw and a controller side size check
+     * cannot close it: commons-fileupload spools the whole request body to a temporary file before
+     * the handler is ever invoked, so the disk is already consumed by the time the handler could
+     * refuse it. The limit is therefore enforced by the resolver, which is the only layer that sees
+     * the request before it is buffered.
      */
     @Bean
     @Order(0)
@@ -198,8 +207,8 @@ public class VulnerableAppConfiguration {
             protected MultipartResolver lookupMultipartResolver(HttpServletRequest request) {
                 if (MAX_FILE_UPLOAD_SIZE_OVERRIDE_PATHS.contains(request.getServletPath())) {
                     CommonsMultipartResolver multipart = new CommonsMultipartResolver();
-                    multipart.setMaxUploadSize(-1);
-                    multipart.setMaxUploadSizePerFile(-1);
+                    multipart.setMaxUploadSize(MAX_FILE_UPLOAD_SIZE_IN_BYTES);
+                    multipart.setMaxUploadSizePerFile(MAX_FILE_UPLOAD_SIZE_IN_BYTES);
                     return multipart;
                 } else {
                     // returns default implementation
