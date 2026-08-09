@@ -43,6 +43,8 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 @Configuration
 public class VulnerableAppConfiguration {
 
+    private static final long LEVEL_9_UPLOAD_LIMIT = 2L * 1024 * 1024;
+
     private static final String I18N_MESSAGE_FILE_LOCATION = "classpath:i18n/messages";
     private static final String ATTACK_VECTOR_PAYLOAD_PROPERTY_FILES_LOCATION_PATTERN =
             "classpath:/attackvectors/*.properties";
@@ -198,8 +200,8 @@ public class VulnerableAppConfiguration {
             protected MultipartResolver lookupMultipartResolver(HttpServletRequest request) {
                 if (MAX_FILE_UPLOAD_SIZE_OVERRIDE_PATHS.contains(request.getServletPath())) {
                     CommonsMultipartResolver multipart = new CommonsMultipartResolver();
-                    multipart.setMaxUploadSize(-1);
-                    multipart.setMaxUploadSizePerFile(-1);
+                    multipart.setMaxUploadSize(LEVEL_9_UPLOAD_LIMIT);
+                    multipart.setMaxUploadSizePerFile(LEVEL_9_UPLOAD_LIMIT);
                     return multipart;
                 } else {
                     // returns default implementation
