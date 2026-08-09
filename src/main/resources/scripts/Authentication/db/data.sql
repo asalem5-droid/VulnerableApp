@@ -44,10 +44,7 @@ INSERT INTO auth_users VALUES (8, 'admin_weak', '$2a$12$x1HJw5KmcLkCafAPrC.ul.VS
 -- Bcrypt hash for '9fG#2hJk*LmN!8qR'
 INSERT INTO auth_users VALUES (9, 'admin_secure', '$2a$10$1WiFUNqUY/vHTzR2QtuMQuzCLK3aZEdjEUpqS4msXOevaCz7Wobe.', NULL, 'BCRYPT', 9, 'admin_secure@example.com', 'ADMIN');
 
--- Level 10: BCrypt at an adaptive work factor over a high entropy password (eJT#ldpHIi$kv3_mmRs3)
--- Two things were wrong here. The stored hash carried a cost factor of 4, roughly a thousand times
--- cheaper to attack than the current default, so a database dump could be cracked offline with
--- hashcat -m 3200; and the credential itself was 'sunshine', a rockyou dictionary word, which no
--- work factor can rescue because the search space is a few thousand candidates either way.
--- Bcrypt hash (cost 12) for 'eJT#ldpHIi$kv3_mmRs3'
-INSERT INTO auth_users VALUES (10, 'admin_lowcost', '$2a$12$In28Wx.aiGc9tI.3QtC9we.KX1N/Ys76j11k5JcuOc8iP3FZ0Deta', NULL, 'BCRYPT', 10, 'admin_lowcost@example.com', 'ADMIN');
+-- Level 10: BCrypt with a cost factor of 12 over the documented password ('sunshine').
+-- Keeping the documented credential preserves the legitimate login path while the increased work
+-- factor closes the low-iteration weakness this level demonstrates.
+INSERT INTO auth_users VALUES (10, 'admin_lowcost', '$2a$12$BiO43Ip7luSJ5WJBv.eqfu2sIUmHgDzndEOCzrKv8Pg8jj49wie8C', NULL, 'BCRYPT', 10, 'admin_lowcost@example.com', 'ADMIN');
