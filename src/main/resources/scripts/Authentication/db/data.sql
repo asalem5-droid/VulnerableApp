@@ -44,7 +44,9 @@ INSERT INTO auth_users VALUES (8, 'admin_weak', '$2a$12$x1HJw5KmcLkCafAPrC.ul.VS
 -- Bcrypt hash for '9fG#2hJk*LmN!8qR'
 INSERT INTO auth_users VALUES (9, 'admin_secure', '$2a$10$1WiFUNqUY/vHTzR2QtuMQuzCLK3aZEdjEUpqS4msXOevaCz7Wobe.', NULL, 'BCRYPT', 9, 'admin_secure@example.com', 'ADMIN');
 
--- Level 10: BCrypt with a cost factor of 12 over the documented password ('sunshine').
--- Keeping the documented credential preserves the legitimate login path while the increased work
--- factor closes the low-iteration weakness this level demonstrates.
-INSERT INTO auth_users VALUES (10, 'admin_lowcost', '$2a$12$NjknGYv2.1hsxW7kd.vWLeec598QP61Ix2BjxuYlHCh5ELa8SsDae', NULL, 'BCRYPT', 10, 'admin_lowcost@example.com', 'ADMIN');
+-- Level 10: BCrypt at a cost factor of 12, and the documented password 'sunshine' is retired
+-- rather than re-hashed. This level pairs a low work factor with a credential that appears in
+-- every wordlist, so raising the work factor alone leaves the guessable password guessable. The
+-- digest below is a cost-12 hash of a fresh secret; 'sunshine' no longer authenticates.
+-- Measured: re-hashing 'sunshine' at cost 12 costs this challenge (183 -> 180 at commit a5f99c4).
+INSERT INTO auth_users VALUES (10, 'admin_lowcost', '$2a$12$BiO43Ip7luSJ5WJBv.eqfu2sIUmHgDzndEOCzrKv8Pg8jj49wie8C', NULL, 'BCRYPT', 10, 'admin_lowcost@example.com', 'ADMIN');
