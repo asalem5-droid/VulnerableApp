@@ -54,8 +54,11 @@ public final class PasswordHashingUtils {
 
         String[] saltAndHash = saltedSha256Hash.split(HASH_SEPARATOR, 2);
         if (saltAndHash.length != 2) {
-            // Backward compatibility for old plaintext test data.
-            return saltedSha256Hash.equals(rawPassword);
+            // A stored value with no salt separator is not a verifier this method can check. It
+            // used to fall through to comparing the stored value against the submitted password,
+            // which turns any unsalted row into a cleartext credential check inside the very
+            // helper whose job is to prevent one. There is no such row, so refuse instead.
+            return false;
         }
 
         String calculatedHash = sha256Hex(saltAndHash[0], rawPassword);

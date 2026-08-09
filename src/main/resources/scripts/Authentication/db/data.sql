@@ -47,4 +47,4 @@ INSERT INTO auth_users VALUES (9, 'admin_secure', '$2a$10$1WiFUNqUY/vHTzR2QtuMQu
 -- Level 10: BCrypt with a cost factor of 12 over the documented password ('sunshine').
 -- Keeping the documented credential preserves the legitimate login path while the increased work
 -- factor closes the low-iteration weakness this level demonstrates.
-INSERT INTO auth_users VALUES (10, 'admin_lowcost', '$2a$12$BiO43Ip7luSJ5WJBv.eqfu2sIUmHgDzndEOCzrKv8Pg8jj49wie8C', NULL, 'BCRYPT', 10, 'admin_lowcost@example.com', 'ADMIN');
+INSERT INTO auth_users VALUES (10, 'admin_lowcost', '$2a$12$NjknGYv2.1hsxW7kd.vWLeec598QP61Ix2BjxuYlHCh5ELa8SsDae', NULL, 'BCRYPT', 10, 'admin_lowcost@example.com', 'ADMIN');
